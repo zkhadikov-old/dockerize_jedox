@@ -1,1 +1,2 @@
-Dockeriston scripts for Jedox Suite
+#Dockerize Jedox Suite
+
