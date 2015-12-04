@@ -36,7 +36,7 @@ pushd "$PS"
 
 echo
 echo "Import Jedox Suite into docker image jedox/ps whit id:"
-tar --numeric-owner --exclude=/proc --exclude=/sys --exclude='*.tar.gz' --exclude'*.log' -cf "$PS/../ps.tar" ./
+tar --numeric-owner --exclude=/proc --exclude=/sys --exclude='*.tar.gz' --exclude='*.log' -cf "$PS/../ps.tar" ./
 cat "$PS/../ps.tar" | docker import --change "ENTRYPOINT while true; do ping 8.8.8.8; done" - jedox/ps
 
 echo
@@ -51,6 +51,7 @@ echo
 echo "Copy scripts and patches"
 docker exec jedox_ps /bin/bash -c "cp /opt/.bashrc /root/.bashrc"
 docker exec jedox_ps /bin/bash -c "cp -f /opt/jedox_olap /etc/init.d/jedox_olap"
+docker exec jedox_ps /bin/bash -c "cp /opt/bin/* /bin/"
 
 echo 
 echo "Update rpm packages:"
