@@ -51,6 +51,7 @@ echo
 echo "Copy scripts and patches"
 docker exec jedox_ps /bin/bash -c "cp /opt/.bashrc /root/.bashrc"
 docker exec jedox_ps /bin/bash -c "cp -f /opt/jedox_olap /etc/init.d/jedox_olap"
+docker exec jedox_ps /bin/bash -c "cp -f /opt/jedox_tomcat.sh /tomcat/jedox_tomcat.sh"
 docker exec jedox_ps /bin/bash -c "cp /opt/bin/* /bin/"
 
 echo 
