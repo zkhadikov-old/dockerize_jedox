@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+
+start_olap
+start_core
+start_httpd
+start_etl

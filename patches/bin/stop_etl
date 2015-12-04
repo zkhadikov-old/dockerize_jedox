@@ -1,0 +1,3 @@
+#!/bin/bash
+#
+/tomcat/jedox_tomcat.sh stop

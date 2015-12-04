@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+stop_core
+stop_httpd
+stop_etl
+stop_olap

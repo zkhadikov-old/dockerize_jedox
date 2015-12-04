@@ -1,0 +1,233 @@
+#!/bin/bash
+#
+#	/etc/rc.d/init.d/jedox_olap
+#
+#	Jedox-Suite olap daemon
+#
+# chkconfig: - 65 35
+# description: The Jedox-Suite server daemons provide \
+#              OLAP database, Tomcat and Web functionality.
+# processname: palo
+# pidfile: /var/run/jedox/olap.pid
+#
+### BEGIN INIT INFO
+# Provides:          jedox_olap
+# Required-Start:    $remote_fs $named $time $syslog udev
+# Required-Stop:     $remote_fs $named $time $syslog udev
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Jedox-Suite server daemons
+# Description:       The Jedox-Suite server daemons
+#	provide OLAP database, Tomcat and Web functionality.
+### END INIT INFO
+
+# Copyright (c) 2014 Jedox AG, Freiburg
+#
+# Author: Christoffer Anselm, Jedox AG, 2012
+# Author: Jerome Meinke, Jedox AG, 2014
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# Source Jedox environment additions
+. /etc/jedoxenv.sh
+
+# olap
+OLAP_BIN="/usr/bin/palo"
+OLAP_PID="/var/run/jedox/olap.pid"
+
+OLAP_ENV=
+OLAP_ARG=
+
+OLAP_START_TIMEOUT=0
+OLAP_STOP_TIMEOUT=0
+
+case "$JEDOX_ADDON" in
+	olap64)
+		OLAP_NAME="Jedox OLAP-Server $JEDOX_VERSION 64bit MT"
+		;;
+
+	olapgpu)
+		OLAP_NAME="Jedox OLAP-Server $JEDOX_VERSION 64bit GPU"
+		;;
+
+	*)
+		OLAP_NAME="Jedox OLAP-Server $JEDOX_VERSION 32bit MT"
+		;;
+esac
+
+print_usage() {
+	echo "Usage: $0 {start|stop|restart|force-reload|status}"
+	echo "       $0 --help"
+}
+
+pid_is_running() {
+	ps -eo pid | egrep "^\s*$1$" 2>&1
+}
+
+wait_pid_port_open() {
+#	curr_port=( $(sed -n 's/^\(admin\|https\?\)  *\"\"  *\([^ ]*.*\)/\2/p' /Data/palo.ini) )
+	curr_pid=$1
+	
+	waittime=1
+	#while [ "$(pid_is_running $curr_pid)" ] && [ -z "$(netstat -apn |egrep "LISTEN[^0-9]+$curr_pid/")" ]; do
+	while [ "$(pid_is_running $curr_pid)" ] && [ -z "$|egrep "7777.*LISTEN")" ]; do
+		echo -n "."
+
+		sleep 1
+		((waittime++))
+
+		if [ "$OLAP_START_TIMEOUT" -ne "0" ] && [ "$OLAP_START_TIMEOUT" -lt "$waittime" ]; then
+			echo ""
+			echo "ATTENTION: Configured startup-timeout reached - assuming OLAP service is up by now..."
+			break
+		fi
+	done 
+}
+
+start() {
+	# raise soft limit to avoid too low defaults
+	ulimit -S unlimited -c unlimited
+
+	echo -n "Starting $OLAP_NAME service (olap)..."
+	
+	if [ -e "$OLAP_PID" ]; then
+		if [ "$(pid_is_running $(cat "$OLAP_PID") )" ]; then
+    	wait_pid_port_open $(cat "$OLAP_PID")
+    	echo "done"
+      return 0
+    else
+		  rm "$OLAP_PID"
+		  echo -n "deleted obsolete pid-file..."
+		fi
+	fi
+
+  eval $OLAP_ENV "su -s /bin/bash -m $JEDOX_USER -c \"$OLAP_BIN $OLAP_ARG & echo \\\$! > $OLAP_PID\" &"
+  tmp_pid=$!
+
+  # wait for su to call the olap service
+  while [ "$(pid_is_running $tmp_pid)" ]; do
+		if [ -e "$OLAP_PID" ]; then
+      break
+		fi
+
+    sleep 1
+    echo -n "."
+  done
+
+  sleep 1
+
+  if [ -e "$OLAP_PID" ]; then
+    if [ "$(pid_is_running $(cat "$OLAP_PID") )" ]; then
+      wait_pid_port_open $(cat "$OLAP_PID")
+      echo "done"
+      return 0
+    else
+      rm "$OLAP_PID"
+    fi
+  fi
+
+  echo "failed"
+  return 1
+}
+
+stop() {
+	echo -n "Stopping $OLAP_NAME service (olap).."
+
+	if [ -e "$OLAP_PID" ]; then
+		if [ "$(pid_is_running $(cat "$OLAP_PID") )" ]; then
+			kill -s INT $(cat "$OLAP_PID")
+
+			waittime=1
+			while [ "$(pid_is_running $(cat "$OLAP_PID") )" ]; do
+				echo -n "."
+
+				sleep 1
+				((waittime++))
+
+				if [ "$OLAP_STOP_TIMEOUT" -ne "0" ] && [ "$OLAP_STOP_TIMEOUT" -lt "$waittime" ]; then
+					echo ""
+					echo -n "ATTENTION: Configured shutdown-timeout reached - using force to shut the service down..."
+
+					kill -s TERM $(cat "$OLAP_PID")
+
+					sleep 3
+
+					if [ "$(pid_is_running $(cat "$OLAP_PID") )" ]; then
+						kill -s KILL $(cat "$OLAP_PID")
+					fi
+
+					break
+				fi
+			done
+
+			echo "done"
+		else
+			echo "Found pid-file but no running service - nothing to shut down."
+		fi
+
+		rm "$OLAP_PID"
+
+		return 0
+	fi
+
+	echo "failed"
+	return 1
+}
+
+COMMAND=
+
+# parse arguments
+for arg; do
+	case "$arg" in
+		start|stop|restart|status)
+			if [ "$COMMAND" ]; then
+				echo "Error: Multiple actions defined on commandline!"
+				exit 1
+			fi
+				
+			COMMAND=$arg
+			;;
+
+		--help)
+			print_usage
+			exit 0
+			;;
+
+		*)
+			echo "Error: Unrecognized argument: \"$arg\"!"
+			#echo "Please see \"$0 --help\" for usage."
+			print_usage
+			exit 1
+			;;
+	esac
+done
+
+# parse command
+case "$COMMAND" in
+	start)
+		start
+		;;
+
+	stop)
+		stop
+		;;
+
+	status)
+		status -p "$OLAP_PID" $OLAP_BIN
+		;;
+
+	restart|force-reload)
+		stop
+		start
+		;;
+
+	"")
+		print_usage
+		exit 1
+		;;
+esac
+
+exit $?
+

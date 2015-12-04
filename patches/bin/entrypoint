@@ -1,0 +1,22 @@
+#!/bin/bash
+
+term() {
+  echo
+  echo "########################################################"
+  echo "### Stoping Jedox Suite Docker Container (PID: $$) ###"
+  echo "########################################################"
+  echo
+  stop
+  kill -9 $$
+}
+
+trap term SIGTERM SIGINT SIGSTOP
+
+echo
+echo "########################################################"
+echo "### Sarting Jedox Suite Docker Container (PID: $$) ###"
+echo "########################################################"
+echo
+start
+
+tail -f /log/*.log /log/tomcat/*.log
