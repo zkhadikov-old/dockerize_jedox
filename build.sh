@@ -32,12 +32,27 @@ echo
 echo "Change to Jedox Suite installation path:"
 pushd "$PS"
 
-# TODO: add start scripts and patch olap start script
-
 echo
 echo "Import Jedox Suite into docker image jedox/ps whit id:"
 tar --numeric-owner --exclude=/proc --exclude=/sys --exclude='*.tar.gz' -cf "$PS/../ps.tar" ./
-cat "$PS/../ps.tar" | docker import - jedox/ps
+cat "$PS/../ps.tar" | docker import --change "ENTRYPOINT while true; do ping 8.8.8.8; done" - jedox/ps
+
+echo
+echo "Change back:"
+popd
+
+echo
+echo "Start container:"
+docker run --name jedox_ps -d jedox/ps 2> /dev/null
+docker start jedox_ps
+
+echo
+echo "Stop container:"
+docker stop jedox_ps
+
+#echo 
+#echo "Build Jedox Suite jedox/aio image with Dockerfile:"
+#docker build --tag="jedox/aio" .
 
 echo
 echo "Dockerization finished."
