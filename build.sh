@@ -3,9 +3,11 @@
 # dockerize jedox suite script
 #
 # Author: Zurab Khadikov <zurab.khadikov@jedox.com>
-# 
-
+#
 # param $1 is Jedox Suite installation path
+ 
+# set vars
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #
 # set params
@@ -42,9 +44,26 @@ echo "Change back:"
 popd
 
 echo
-echo "Start container:"
-docker run --name jedox_ps -d jedox/ps 2> /dev/null
-docker start jedox_ps
+echo "Create and start container:"
+docker run --name jedox_ps -d -v $THIS_DIR/patches:/opt jedox/ps 2> /dev/null
+
+echo 
+echo "Copy scripts and patches"
+docker exec jedox_ps /bin/bash -c "cp /opt/.bashrc /root/.bashrc"
+
+echo 
+echo "Update rpm packages:"
+docker exec jedox_ps /bin/bash -c "yum update -y"
+
+echo
+echo "Install wget and oracle jre:"
+docker exec jedox_ps /bin/bash -c "yum install -y wget"
+docker exec jedox_ps /bin/bash -c "cd /root && wget --header \"Cookie: oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u66-b17/jre-8u66-linux-x64.rpm"
+docker exec jedox_ps /bin/bash -c "cd /root && yum install -y jre-8u66-linux-x64.rpm && rm -f jre-8u66-linux-x64.rpm"
+
+echo
+echo "Clean all:"
+docker exec jedox_ps /bin/bash -c "yum clean all"
 
 echo
 echo "Stop container:"
