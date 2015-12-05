@@ -8,6 +8,7 @@
  
 # set vars
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CPUS="$( cat /proc/cpuinfo | grep processor | wc -l)"
 
 #
 # set params
@@ -76,7 +77,7 @@ echo
 echo "Export final image to (It might take a while, be patient!):"
 echo "$THIS_DIR/export/jedox_aio.tar.xz"
 docker export jedox_ps > $THIS_DIR/export/jedox_aio.tar
-xz -zf $THIS_DIR/export/jedox_aio.tar > $THIS_DIR/export/jedox_aio.tar.xz
+xz -T $CPUS -zf $THIS_DIR/export/jedox_aio.tar > $THIS_DIR/export/jedox_aio.tar.xz
 rm -f $THIS_DIR/export/jedox_aio.tar
 
 echo
