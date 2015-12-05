@@ -73,11 +73,15 @@ echo "Commit changes to final image jedox/aio with id: "
 docker commit -c "ENTRYPOINT entrypoint" -c "EXPOSE 80 7777" jedox_ps jedox/aio
 
 echo
-echo "Export final image to:"
+echo "Export final image to (It might take a while, be patient!):"
 echo "$THIS_DIR/export/jedox_aio.tar.xz"
 docker export jedox_ps > $THIS_DIR/export/jedox_aio.tar
 xz -zf $THIS_DIR/export/jedox_aio.tar > $THIS_DIR/export/jedox_aio.tar.xz
 rm -f $THIS_DIR/export/jedox_aio.tar
+
+echo
+echo "Prepare $THIS_DIR/jedox_docker.tar archive:"
+tar -cf $THIS_DIR/jedox_docker.tar -C $THIS_DIR/export .
 
 echo
 echo "Remove intermediate container jedox_ps:"
