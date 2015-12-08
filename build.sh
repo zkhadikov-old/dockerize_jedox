@@ -60,18 +60,18 @@ docker exec jedox_ps /bin/bash -c "yum update -y"
 
 echo
 echo "Install wget and oracle jre:"
-docker exec jedox_ps /bin/bash -c "yum install -y wget"
+docker exec jedox_ps /bin/bash -c "yum install -y wget nano"
 docker exec jedox_ps /bin/bash -c "cd /root && wget --header \"Cookie: oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u66-b17/jre-8u66-linux-x64.rpm"
 docker exec jedox_ps /bin/bash -c "cd /root && yum install -y jre-8u66-linux-x64.rpm && rm -f jre-8u66-linux-x64.rpm"
 docker exec jedox_ps /bin/bash -c "yum clean all"
-
+docker exec jedox_ps /bin/bash -c "export TERM=xterm"
 echo
 echo "Stop intermediate container:"
 docker stop jedox_ps
 
 echo
 echo "Commit changes to final image jedox/aio with id: "
-docker commit -c "ENTRYPOINT entrypoint" -c "EXPOSE 80 7777" jedox_ps jedox/aio
+docker commit -c "CMD entrypoint" -c "EXPOSE 80 7777" jedox_ps jedox/aio
 
 echo
 echo "Export final image to (It might take a while, be patient!):"
