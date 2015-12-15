@@ -48,22 +48,23 @@ echo "Create and start intermediate container with id:"
 docker run --name jedox_ps -d -v $THIS_DIR/patches:/opt jedox/ps
 
 echo 
-echo "Copy scripts and patches"
-docker exec jedox_ps /bin/bash -c "cp /opt/.bashrc /root/.bashrc"
-docker exec jedox_ps /bin/bash -c "cp -f /opt/jedox_olap /etc/init.d/jedox_olap"
-docker exec jedox_ps /bin/bash -c "cp -f /opt/jedox_tomcat.sh /tomcat/jedox_tomcat.sh"
-docker exec jedox_ps /bin/bash -c "cp /opt/bin/* /bin/"
-
-echo 
 echo "Update rpm packages:"
 docker exec jedox_ps /bin/bash -c "yum update -y"
 
 echo
 echo "Install wget and oracle jre:"
-docker exec jedox_ps /bin/bash -c "yum install -y wget"
+docker exec jedox_ps /bin/bash -c "yum install -y wget patch"
 docker exec jedox_ps /bin/bash -c "cd /root && wget --header \"Cookie: oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u66-b17/jre-8u66-linux-x64.rpm"
 docker exec jedox_ps /bin/bash -c "cd /root && yum install -y jre-8u66-linux-x64.rpm && rm -f jre-8u66-linux-x64.rpm"
 docker exec jedox_ps /bin/bash -c "yum clean all"
+
+echo
+echo "Copy scripts and patches"
+docker exec jedox_ps /bin/bash -c "cp /opt/.bashrc /root/.bashrc"
+docker exec jedox_ps /bin/bash -c "cp -f /opt/olap_patch.diff /etc/init.d/ && cd /etc/init.d && patch jedox_olap < olap_patch.diff"
+docker exec jedox_ps /bin/bash -c "cp -f /opt/etl_patch.diff /tomcat/ && cd /tomcat && patch jedox_tomcat.sh < etl_patch.diff"
+docker exec jedox_ps /bin/bash -c "cp /opt/bin/* /bin/"
+
 
 echo
 echo "Stop intermediate container:"
