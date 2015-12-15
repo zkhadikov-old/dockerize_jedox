@@ -2,7 +2,7 @@
 #
 # dockerize jedox suite script
 #
-# Author: Zurab Khadikov <zurab.khadikov@jedox.com>
+# Author: Zurab Khadikov <kvzura@gmail.com>
 #
 # param $1 is Jedox Suite installation path
  
