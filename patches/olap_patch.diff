@@ -1,0 +1,12 @@
+--- jedox_olap_old	2015-12-08 15:32:33.145235971 +0100
++++ jedox_olap	2015-12-04 16:36:45.000000000 +0100
+@@ -71,7 +71,8 @@
+ 	curr_pid=$1
+ 	
+ 	waittime=1
+-	while [ "$(pid_is_running $curr_pid)" ] && [ -z "$(netstat -apn |egrep "LISTEN[^0-9]+$curr_pid/")" ]; do
++	#while [ "$(pid_is_running $curr_pid)" ] && [ -z "$(netstat -apn |egrep "LISTEN[^0-9]+$curr_pid/")" ]; do
++	while [ "$(pid_is_running $curr_pid)" ] && [ -z "$|egrep "7777.*LISTEN")" ]; do
+ 		echo -n "."
+ 
+ 		sleep 1
