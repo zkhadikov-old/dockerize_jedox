@@ -45,7 +45,7 @@ popd > /dev/null
 
 echo
 echo "Create and start intermediate container with id:"
-docker run --name jedox_ps -d -v $THIS_DIR/patches:/opt jedox/ps
+docker run --privileged --name jedox_ps -d -v $THIS_DIR/patches:/opt jedox/ps
 
 echo 
 echo "Update rpm packages:"
@@ -61,10 +61,11 @@ docker exec jedox_ps /bin/bash -c "yum clean all"
 echo
 echo "Copy scripts and patches"
 docker exec jedox_ps /bin/bash -c "cp /opt/.bashrc /root/.bashrc"
-docker exec jedox_ps /bin/bash -c "cp -f /opt/olap_patch.diff /etc/init.d/ && cd /etc/init.d && patch jedox_olap < olap_patch.diff"
-docker exec jedox_ps /bin/bash -c "cp -f /opt/etl_patch.diff /tomcat/ && cd /tomcat && patch jedox_tomcat.sh < etl_patch.diff"
+docker exec jedox_ps /bin/bash -c "cp /opt/olap_patch.diff /etc/init.d"
+docker exec jedox_ps /bin/bash -c "cd /etc/init.d/ && patch jedox_olap < olap_patch.diff"
+docker exec jedox_ps /bin/bash -c "cp /opt/etl_patch.diff /tomcat"
+docker exec jedox_ps /bin/bash -c "cd /tomcat/ && patch jedox_tomcat.sh < etl_patch.diff"
 docker exec jedox_ps /bin/bash -c "cp /opt/bin/* /bin/"
-
 
 echo
 echo "Stop intermediate container:"
@@ -84,6 +85,7 @@ rm -f $THIS_DIR/export/jedox_aio.tar
 echo
 echo "Prepare $THIS_DIR/jedox_docker.tar archive:"
 tar -cf $THIS_DIR/jedox_docker.tar -C $THIS_DIR/export .
+rm $THIS_DIR/jedox_docker.tar
 
 echo
 echo "Remove intermediate container jedox_ps:"
