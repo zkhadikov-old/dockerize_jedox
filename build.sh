@@ -47,9 +47,9 @@ echo
 echo "Create and start intermediate container with id:"
 docker run --privileged --name jedox_ps -d -v $THIS_DIR/patches:/opt jedox/ps
 
-echo 
-echo "Update rpm packages:"
-docker exec jedox_ps /bin/bash -c "yum update -y"
+#echo 
+#echo "Update rpm packages:"
+#docker exec jedox_ps /bin/bash -c "yum update -y"
 
 echo
 echo "Install wget and oracle jre:"
