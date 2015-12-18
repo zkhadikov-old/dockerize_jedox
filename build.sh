@@ -85,7 +85,6 @@ rm -f $THIS_DIR/export/jedox_aio.tar
 echo
 echo "Prepare $THIS_DIR/jedox_docker.tar archive:"
 tar -cf $THIS_DIR/jedox_docker.tar -C $THIS_DIR/export .
-rm $THIS_DIR/jedox_docker.tar
 
 echo
 echo "Remove intermediate container jedox_ps:"
