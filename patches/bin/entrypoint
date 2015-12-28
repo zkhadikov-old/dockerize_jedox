@@ -1,22 +1,36 @@
-#!/bin/bash
+#?/bin/bash
+BASEDIR=$(dirname $0)
 
-term() {
-  echo
-  echo "########################################################"
-  echo "### Stoping Jedox Suite Docker Container (PID: $$) ###"
-  echo "########################################################"
-  echo
-  stop
-  kill -9 $$
-}
+function stop { 
+	echo "stopping jedox"
+	bash /etc/init.d/jedox_olap stop
+	bash /etc/init.d/jedox_core stop
+	bash /tomcat/jedox_tomcat.sh stop
+	bash /etc/init.d/httpd stop
+	exit 
+ } 
 
-trap term SIGTERM SIGINT SIGSTOP
+trap stop SIGTERM SIGHUP SIGINT SIGQUIT
+ 
+echo "starting jedox"
+ulimit -S unlimited -c unlimited
+echo "starting olap"
+bash /etc/init.d/jedox_olap start
+echo "starting core"
+bash /etc/init.d/jedox_core start
+echo "starting tomcat"
+bash /tomcat/jedox_tomcat.sh start
+echo "starting apache"
+bash /etc/init.d/httpd start
 
-echo
-echo "########################################################"
-echo "### Sarting Jedox Suite Docker Container (PID: $$) ###"
-echo "########################################################"
-echo
-start
+if [ ! -f /log/olap_server.log ]; then
+		touch /log/olap_server.log
+fi
 
-tail -f /log/*.log /log/tomcat/*.log
+
+if [ ! -f $BASEDIR/post-install.log ]; then 
+    python $BASEDIR/leanbi-jedox-scripts/post_install.py  2>&1 | tee -a $BASEDIR/post_install.log
+	echo "placeholder for post_install script"
+fi 
+
+tail -f /log/*.log log/tomcat/*.log

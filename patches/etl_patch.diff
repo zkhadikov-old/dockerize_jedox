@@ -1,0 +1,14 @@
+29d28
+< INSTALL_PATH=/opt/jedox/ps
+32c31
+< . $INSTALL_PATH/etc/jedoxenv.sh
+---
+> . /etc/jedoxenv.sh
+35c34
+< JEDOX_TOMCAT_HOME="$INSTALL_PATH/tomcat"
+---
+> JEDOX_TOMCAT_HOME=/tomcat
+154c153
+< pushd "$INSTALL_PATH" > /dev/null
+---
+> pushd / > /dev/null
